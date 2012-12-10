@@ -1,10 +1,17 @@
 <?php
 
-use EDAM\UserStore\UserStoreClient;
-use EDAM\NoteStore\NoteStoreClient;
-use EDAM\Types\Data, EDAM\Types\Note, EDAM\Types\Notebook, EDAM\NoteStore\NoteFilter, 
-		EDAM\Types\Resource, EDAM\Types\ResourceAttributes;
-use EDAM\Error\EDAMUserException, EDAM\Error\EDAMErrorCode;
+namespace Cloudmanic\Evernote;
+
+use \EDAM\UserStore\UserStoreClient;
+use \EDAM\NoteStore\NoteStoreClient;
+use \EDAM\Types\Data;
+use \EDAM\Types\Note;
+use \EDAM\Types\Notebook;
+use \EDAM\NoteStore\NoteFilter; 
+use \EDAM\Types\Resource; 
+use EDAM\Types\ResourceAttributes;
+use \EDAM\Error\EDAMUserException;
+use EDAM\Error\EDAMErrorCode;
 
 require_once("lib-evernote/Thrift.php");
 require_once("lib-evernote/transport/TTransport.php");
@@ -18,7 +25,7 @@ require_once("lib-evernote/packages/UserStore/UserStore_constants.php");
 require_once("lib-evernote/packages/NoteStore/NoteStore.php");
 require_once("lib-evernote/packages/Limits/Limits_constants.php");
 
-class CloudEvernote
+class Api
 {
 	private $_access_token = '';
 	private $_evernote_host = '';
@@ -29,43 +36,16 @@ class CloudEvernote
 	private $_files = array();
 
 	//
-	// Client init. We need to run this after calling set_access_token and set_evernote_host
-	// 
-	function client_init()
-	{
-		// Settup the http client.
-		$userStoreHttpClient = new THttpClient($this->_evernote_host, $this->_port, '/edam/user', $this->_proto);
-		$userStoreProtocol = new TBinaryProtocol($userStoreHttpClient);
-		$userStore = new UserStoreClient($userStoreProtocol, $userStoreProtocol);
-		
-		// Get the URL used to interact with the contents of the user's account
-		// When your application authenticates using OAuth, the NoteStore URL will
-		// be returned along with the auth token in the final OAuth request.
-		// In that case, you don't need to make this call.
-		$noteStoreUrl = $userStore->getNoteStoreUrl($this->_access_token);
-		
-		$parts = parse_url($noteStoreUrl);
-		$noteStoreHttpClient = new THttpClient($parts['host'], $this->_port, $parts['path'], $this->_proto);
-		$noteStoreProtocol = new TBinaryProtocol($noteStoreHttpClient);
-		$this->_note_store = new NoteStoreClient($noteStoreProtocol, $noteStoreProtocol);
-	}
-
+	// Constructor. Pass in the access token, 
+	// and the evernote host information.
 	//
-	// Set access token.
-	//
-	function set_access_token($access_token)
+	function __construct($access_token, $host, $port = '443', $proto = 'https')
 	{
 		$this->_access_token = $access_token;
-	}
-
-	//
-	// Set evernote host.
-	//
-	function set_evernote_host($host, $port = '443', $proto = 'https')
-	{
 		$this->_evernote_host = $host;
 		$this->_port = $port;
 		$this->_proto = $proto;
+		$this->_client_init();
 	}
 
 	//
@@ -251,6 +231,28 @@ class CloudEvernote
 	}
 	
 	// ---------------------------- Private Functions -------------------------- //
+	
+	//
+	// Client init. We need to run this after calling set_access_token and set_evernote_host
+	// 
+	private function _client_init()
+	{
+		// Settup the http client.
+		$userStoreHttpClient = new \THttpClient($this->_evernote_host, $this->_port, '/edam/user', $this->_proto);
+		$userStoreProtocol = new \TBinaryProtocol($userStoreHttpClient);
+		$userStore = new \EDAM\UserStore\UserStoreClient($userStoreProtocol, $userStoreProtocol);
+		
+		// Get the URL used to interact with the contents of the user's account
+		// When your application authenticates using OAuth, the NoteStore URL will
+		// be returned along with the auth token in the final OAuth request.
+		// In that case, you don't need to make this call.
+		$noteStoreUrl = $userStore->getNoteStoreUrl($this->_access_token);
+		
+		$parts = parse_url($noteStoreUrl);
+		$noteStoreHttpClient = new \THttpClient($parts['host'], $this->_port, $parts['path'], $this->_proto);
+		$noteStoreProtocol = new \TBinaryProtocol($noteStoreHttpClient);
+		$this->_note_store = new \EDAM\NoteStore\NoteStoreClient($noteStoreProtocol, $noteStoreProtocol);
+	}
 	
 	//
 	// Note Clean - We do not like the evernote library objects so we clean
