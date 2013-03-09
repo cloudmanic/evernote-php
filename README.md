@@ -1,4 +1,4 @@
-# Overview
+## Overview
 
 This is a wrapper library for making work with the Evernote API easier with PHP.
 
@@ -7,14 +7,14 @@ This is a wrapper library for making work with the Evernote API easier with PHP.
 1. PHP 5.3+
 2. CURL
 
-# Access Tokens
+## Access Tokens
 
 You can get an access token either via oAuth or using one of these links.
 
 * (sandbox) https://sandbox.evernote.com/api/DeveloperToken.action
 * (production) https://www.evernote.com/api/DeveloperToken.action
 
-# Supported Functions.
+## Supported Functions.
 
 * Cloudmanic\Evernote\Api::set_access_token($token, false);
 * $user = Cloudmanic\Evernote\Api::get_user();
