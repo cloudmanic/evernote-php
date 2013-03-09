@@ -5,13 +5,20 @@
     "homepage": "https://cloudmanic.com",
     "license": "MIT",
     "minimum-stability": "stable",
+    
     "authors": [
     {
       "name": "Spicer Matthews",
       "homepage": "http://spicermatthews.com"
     }],
+    
     "version": "1.0.0",
+    
     "autoload": {
 	    "psr-0": {"Cloudmanic\\Evernote": "src/"}
-    }
+    },
+    
+    "require": {
+      "evernote/evernote": "1.23.1.*@dev"
+    },
 }
