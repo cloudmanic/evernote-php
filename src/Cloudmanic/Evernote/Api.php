@@ -14,6 +14,8 @@ class Api
 	private static $_access_token = null;
 	private static $_client = null;
 	private static $_error = '';
+	private static $_error_code = '';
+	private static $_error_parameter = '';
 	private static $_files = array();
 
 	//
@@ -23,6 +25,40 @@ class Api
 	{
 		self::$_access_token = $token;
 		self::$_client = new \Evernote\Client(array('token' => self::$_access_token, 'sandbox' => $sandbox));
+	}
+
+	// -------------- Error ------------------ //	
+	
+	//
+	// Return the error string.
+	//
+	public static function get_error_string()
+	{
+		return self::$_error . ':' . self::$_error_code . ':' . self::$_error_parameter;  
+	}
+	
+	//
+	// Return the error message.
+	//
+	public static function get_error()
+	{
+		return self::$_error;
+	}
+	
+	//
+	// Return the error code.
+	//
+	public static function get_error_code()
+	{
+		return self::$_error_code;
+	}
+	
+	//
+	// Return the error parameter.
+	//
+	public static function get_error_parameter()
+	{
+		return self::$_error_parameter;
 	}
 	
 	// -------------- User Store ------------------ //
@@ -52,13 +88,30 @@ class Api
 				}
 		  }
 		  
+		  self::_clear_error();
 		  return $data;
-		  
-		} catch(Exception $e)
+		} 
+		
+		catch(\EDAM\Error\EDAMSystemException $e) 
 		{
-			self::_exception_error($e);
-			return false;
-		}
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(\EDAM\Error\EDAMUserException $e) {
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(\EDAM\Error\EDAMNotFoundException $e) {
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(Exception $e) {
+	    self::_exception_error($e);
+	    return false;
+    }	
 	}
 
 	// -------------- Notes ---------------------- //
@@ -75,8 +128,7 @@ class Api
 	    return false;
     }
 	
-    // Build object.
-		$noteStore = self::$_client->getNoteStore();
+    // Build Note object.
 		$note = new \EDAM\Types\Note();
 	
 		// Title
@@ -109,10 +161,35 @@ class Api
     '<en-note>' . $body . '</en-note>';
         
     // Create the note.
-    $createdNote = $noteStore->createNote($note);
+    try {
+	    $noteStore = self::$_client->getNoteStore();
+    	$createdNote = $noteStore->createNote($note);
+    }
+    
+		catch(\EDAM\Error\EDAMSystemException $e) 
+		{
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(\EDAM\Error\EDAMUserException $e) {
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(\EDAM\Error\EDAMNotFoundException $e) {
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(Exception $e) {
+	    self::_exception_error($e);
+	    return false;
+    }	
     
     // Clear stuff.
     self::$_files = array();
+    self::_clear_error();
     
     return $createdNote->guid;
 	}
@@ -156,15 +233,46 @@ class Api
 	public static function get_notebooks()
 	{
 		$data = array();
-		$noteStore = self::$_client->getNoteStore();
-		$notebooks = $noteStore->listNotebooks();	
 		
-		foreach($notebooks AS $key => $row)
+		try {
+			$noteStore = self::$_client->getNoteStore();
+			$notebooks = $noteStore->listNotebooks();	
+			
+			// Loop through the notebooks and formate the data.
+			foreach($notebooks AS $key => $row)
+			{
+			  $data[] = array(
+			  	'guid' => $row->guid, 
+			  	'name' => $row->name, 
+			  	'stack' => $row->stack, 
+			  	'updateSequenceNum' => $row->updateSequenceNum
+			  );
+			}
+			
+			self::_clear_error();
+			return $data;
+		} 
+		
+		catch(\EDAM\Error\EDAMSystemException $e) 
 		{
-			$data[] = array('guid' => $row->guid, 'name' => $row->name, 'stack' => $row->stack, 'updateSequenceNum' => $row->updateSequenceNum);
-		}
-		
-		return $data;
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(\EDAM\Error\EDAMUserException $e) {
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(\EDAM\Error\EDAMNotFoundException $e) {
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(Exception $e) {
+	    self::_exception_error($e);
+	    return false;
+    }
 	}
 	
 	//
@@ -173,7 +281,12 @@ class Api
 	public static function new_notebook($name, $stack = null)
 	{
 		// First we make sure we do not already have this notebook.
-		$books = self::get_notebooks();
+		if(! $books = self::get_notebooks())
+		{
+			return false;
+		}
+		
+		// Loop through the notebooks.
 		foreach($books AS $key => $row)
 		{		
 			if(strtoupper(trim($row['name'])) == strtoupper(trim($name)))
@@ -187,27 +300,58 @@ class Api
 			$nb = new \EDAM\Types\Notebook(array('name' => trim($name), 'stack' => $stack));
 			$noteStore = self::$_client->getNoteStore();
 			$rt = $noteStore->createNotebook(self::$_access_token, $nb);
+			self::_clear_error();
 			return $rt->guid;
-		} catch(Exception $e)
+		} 		
+		
+		catch(\EDAM\Error\EDAMSystemException $e) 
 		{
-			self::_exception_error($e);
-			return false;
-		}
-	}
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(\EDAM\Error\EDAMUserException $e) {
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(\EDAM\Error\EDAMNotFoundException $e) {
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(Exception $e) {
+	    self::_exception_error($e);
+	    return false;
+    }	
+  }
 	
 	// ------------- Private helper function ---------------- //
+	
+	//
+	// Clear error.
+	//
+	private static function _clear_error()
+	{
+		self::$_error_code = '';
+		self::$_error_parameter = '';
+		self::$_error = '';
+	}
 	
 	//
 	// Deal with exception error.
 	//
 	private static function _exception_error($e)
 	{
-		if(isset(\EDAM\Error\EDAMErrorCode::$__names[$e->errorCode]))
+		if(isset(\EDAM\Error\EDAMErrorCode::$__names[$e->errorCode])) 
 		{
+		  self::$_error_code = $e->errorCode;
+		  self::$_error_parameter = $e->parameter;
 		  self::$_error = \EDAM\Error\EDAMErrorCode::$__names[$e->errorCode];
-		} else
+		} else 
 		{
-		  self::$_error = 'Unknown Error Code';
+		  self::$_error_code = $e->getCode();
+		  self::$_error = $e->getMessage();;
 		}
 	}
 }

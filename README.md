@@ -16,12 +16,19 @@ You can get an access token either via oAuth or using one of these links.
 
 ## Supported Functions.
 
-* Cloudmanic\Evernote\Api::set_access_token($token, false);
-* $user = Cloudmanic\Evernote\Api::get_user();
-* $notebooks = Cloudmanic\Evernote\Apie::get_notebooks();
-* $guid = Cloudmanic\Evernote\Api::new_notebook('My First Notebook 3');
-* Cloudmanic\Evernote\Api::add_file('test.jpg');
-* $guid = Cloudmanic\Evernote\Api::new_note($title, $body, $notebook_guid);
+* Cloudmanic\Evernote\Api::set_access_token($token, false)
+* $user = Cloudmanic\Evernote\Api::get_user()
+* $notebooks = Cloudmanic\Evernote\Apie::get_notebooks()
+* $guid = Cloudmanic\Evernote\Api::new_notebook('My First Notebook 3')
+* Cloudmanic\Evernote\Api::add_file('test.jpg')
+* $guid = Cloudmanic\Evernote\Api::new_note($title, $body, $notebook_guid)
+
+## Error Functions
+
+* Cloudmanic\Evernote\Api::get_error_string()
+* Cloudmanic\Evernote\Api::get_error()
+* Cloudmanic\Evernote\Api::get_error_code()
+* Cloudmanic\Evernote\Api::get_error_parameter()
 
 ## Author(s) 
 
