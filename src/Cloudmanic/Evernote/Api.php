@@ -7,7 +7,7 @@
 // Date: 3/7/2013
 //
 
-namespace Cloudmanic\Evermanic;
+namespace Cloudmanic\Evernote;
 
 class Api
 {
