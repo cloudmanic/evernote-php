@@ -1,5 +1,15 @@
 {
     "name": "cloudmanic/evernote-php",
+    "description": "An easy wrapper for working with the Evernote API.",
+    "keywords": ["cloudmanic", "evernote"],
+    "homepage": "https://cloudmanic.com",
+    "license": "MIT",
+    "minimum-stability": "stable",
+    "authors": [
+    {
+      "name": "Spicer Matthews",
+      "homepage": "http://spicermatthews.com"
+    }],
     "version": "1.0.0",
     "autoload": {
 	    "psr-0": {"Cloudmanic\\Evernote": "src/"}
