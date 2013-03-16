@@ -17,6 +17,7 @@ class Api
 	private static $_error_code = '';
 	private static $_error_parameter = '';
 	private static $_files = array();
+	private static $_tags = array();
 
 	//
 	// Set access token.
@@ -154,6 +155,12 @@ class Api
 			}
 		}
 		
+		// Add tags.
+		if(count(self::$_tags) > 0)
+		{
+			$note->tagNames = self::$_tags;
+		}
+		
 		// Content
 		$note->content =
     '<?xml version="1.0" encoding="UTF-8"?>' .
@@ -189,6 +196,7 @@ class Api
     
     // Clear stuff.
     self::$_files = array();
+    self::$_tags = array();
     self::_clear_error();
     
     return $createdNote->guid;
@@ -326,6 +334,117 @@ class Api
     }	
   }
 	
+	// -------------- Tags ------------------ //
+	
+	//
+	// Add tags.
+	//
+	public static function add_tag($name)
+	{
+		// Get or create the GUID for the tag.
+		$guid = self::new_tag(trim($name));
+		self::$_tags[] = trim($name);
+	}
+	
+	//
+	// Return a list of all tags.
+	//
+	public static function get_tags()
+	{
+		$data = array();
+		
+		try {
+			$noteStore = self::$_client->getNoteStore();
+			$tags = $noteStore->listTags();	
+			
+			// Loop through the notebooks and formate the data.
+			foreach($tags AS $key => $row)
+			{
+				$data[] = array(
+					'guid' => $row->guid, 
+					'name' => $row->name,
+					'updateSequenceNum' => $row->updateSequenceNum,
+					'parentGuid' => $row->parentGuid
+				);
+			}
+			
+			self::_clear_error();
+			return $data;
+		} 
+		
+		catch(\EDAM\Error\EDAMSystemException $e) 
+		{
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(\EDAM\Error\EDAMUserException $e) {
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(\EDAM\Error\EDAMNotFoundException $e) {
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(Exception $e) {
+	    self::_exception_error($e);
+	    return false;
+    }
+	}
+	
+	//
+	// Create a tag. Returns the tag GUID.
+	//
+	public static function new_tag($name)
+	{
+		// First we make sure we do not already have this notebook.
+		if(! $tags = self::get_tags())
+		{
+			return false;
+		}
+		
+		// Loop through the notebooks.
+		foreach($tags AS $key => $row)
+		{		
+			if(strtoupper(trim($row['name'])) == strtoupper(trim($name)))
+			{
+				return $row['guid'];
+			}
+		}
+
+		// Add the notebook.	
+		try {
+			$tag = new \EDAM\Types\Tag(array('name' => trim($name)));
+			$noteStore = self::$_client->getNoteStore();
+			$rt = $noteStore->createTag(self::$_access_token, $tag);
+			self::_clear_error();
+			return $rt->guid;
+		} 		
+		
+		catch(\EDAM\Error\EDAMSystemException $e) 
+		{
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(\EDAM\Error\EDAMUserException $e) {
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(\EDAM\Error\EDAMNotFoundException $e) {
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(Exception $e) {
+	    self::_exception_error($e);
+	    return false;
+    }	
+  }
+	
 	// ------------- Private helper function ---------------- //
 	
 	//
@@ -345,9 +464,9 @@ class Api
 	{
 		if(isset(\EDAM\Error\EDAMErrorCode::$__names[$e->errorCode])) 
 		{
-		  self::$_error_code = $e->errorCode;
-		  self::$_error_parameter = $e->parameter;
-		  self::$_error = \EDAM\Error\EDAMErrorCode::$__names[$e->errorCode];
+		  self::$_error_code = (isset($e->errorCode)) ? $e->errorCode : '';
+		  self::$_error_parameter = (isset($e->parameter)) ? $e->parameter : '';
+		  self::$_error = (isset(\EDAM\Error\EDAMErrorCode::$__names[$e->errorCode])) ? \EDAM\Error\EDAMErrorCode::$__names[$e->errorCode] : '';
 		} else 
 		{
 		  self::$_error_code = $e->getCode();

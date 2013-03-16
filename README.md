@@ -22,6 +22,8 @@ You can get an access token either via oAuth or using one of these links.
 * $guid = Cloudmanic\Evernote\Api::new_notebook('My First Notebook 3')
 * Cloudmanic\Evernote\Api::add_file('test.jpg')
 * $guid = Cloudmanic\Evernote\Api::new_note($title, $body, $notebook_guid)
+* $tags = Cloudmanic\Evernote\Api::get_tags()
+* $guid = Cloudmanic\Evernote\Api::new_tag('My First Tag')
 
 ## Error Functions
 
