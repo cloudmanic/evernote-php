@@ -133,7 +133,7 @@ class Api
 		$note = new \EDAM\Types\Note();
 	
 		// Title
-		$note->title = $title;
+		$note->title = trim($title);
 		
 		// Notebook
 		if(! is_null($notebook))
