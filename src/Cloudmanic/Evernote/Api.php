@@ -462,16 +462,8 @@ class Api
 	//
 	private static function _exception_error($e)
 	{
-		if(isset($e->errorCode) && isset(\EDAM\Error\EDAMErrorCode::$__names[$e->errorCode])) 
-		{
-		  self::$_error_code = (isset($e->errorCode)) ? $e->errorCode : '';
-		  self::$_error_parameter = (isset($e->parameter)) ? $e->parameter : '';
-		  self::$_error = (isset(\EDAM\Error\EDAMErrorCode::$__names[$e->errorCode])) ? \EDAM\Error\EDAMErrorCode::$__names[$e->errorCode] : '';
-		} else 
-		{
-		  self::$_error_code = $e->getCode();
-		  self::$_error = $e->getMessage();;
-		}
+		self::$_error_code = $e->getCode();
+		self::$_error = $e->getMessage();;
 	}
 }
 
