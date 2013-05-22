@@ -41,7 +41,8 @@ if(! $notebook_guid = Cloudmanic\Evernote\Api::new_notebook('My First Notebook')
 }
 	
 // Create a new note in the notebook we created above.
-//Cloudmanic\Evernote\Api::add_file('/Users/spicer/Desktop/test.jpg');
+// Cloudmanic\Evernote\Api::add_file('/Users/spicer/Desktop/test.jpg');
+// Cloudmanic\Evernote\Api::add_attributes(array('latitude' => 'some number', 'longitude' => 'some number'));
 if(! $note_guid = Cloudmanic\Evernote\Api::new_note('A Note From Cloudmanic Labs', 'Hello World, From Cloudmanic Labs', $notebook_guid))
 {
 	echo Cloudmanic\Evernote\Api::get_error_string() . $newline;
