@@ -18,6 +18,7 @@ class Api
 	private static $_error_parameter = '';
 	private static $_files = array();
 	private static $_tags = array();
+	private static $_attributes = null;
 
 	//
 	// Set access token.
@@ -135,6 +136,12 @@ class Api
 		// Title
 		$note->title = trim($title);
 		
+		// Add Atributes
+		if(! is_null(self::$_attributes))
+		{
+			$note->attributes = self::$_attributes;
+		}	
+		
 		// Notebook
 		if(! is_null($notebook))
 		{
@@ -200,6 +207,24 @@ class Api
     self::_clear_error();
     
     return $createdNote->guid;
+	}
+	
+	// 
+	// Add attributes to a note.
+	//
+	public static function add_attributes($attrs)
+	{
+		if(! is_array($attrs))
+		{
+			return false;
+		}
+		
+		self::$_attributes = new \EDAM\Types\NoteAttributes();
+	
+		foreach($attrs AS $key => $row)
+		{
+			self::$_attributes->{$key} = $row;
+		}
 	}
 
 	//
