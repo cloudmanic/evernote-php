@@ -36,8 +36,8 @@ class Auth
 		self::$_consumer_secret = $consumer_secret;
 		self::$_return_url = $return;
 		self::$_sandbox = $sandbox;
-		self::$_request_url = (self::$_sandbox) ? 'https://sandbox.evernote.com/oauth' : 'https://evernote.com/oauth';
-		self::$_authorize_url = (self::$_sandbox) ? 'https://sandbox.evernote.com/OAuth.action' : 'https://evernote.com/OAuth.action';
+		self::$_request_url = (self::$_sandbox) ? 'https://sandbox.evernote.com/oauth' : 'https://www.evernote.com/oauth';
+		self::$_authorize_url = (self::$_sandbox) ? 'https://sandbox.evernote.com/OAuth.action' : 'https://www.evernote.com/OAuth.action';
 	}
 
   //
