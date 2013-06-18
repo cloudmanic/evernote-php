@@ -448,6 +448,57 @@ class Api
 	    return false;
     }	
   }
+  
+	//
+	// Update a notebook title
+	//
+	public static function update_notebook_title($guid, $name, $stack = null)
+	{
+		// First we make sure we do not already have this notebook.
+		if(! $books = self::get_notebooks())
+		{
+			return false;
+		}
+		
+		// Loop through the notebooks.
+		foreach($books AS $key => $row)
+		{		
+			if(strtoupper(trim($row['name'])) == strtoupper(trim($name)))
+			{
+				return $row['guid'];
+			}
+		}
+
+		// Add the notebook.	
+		try {
+			$nb = new \EDAM\Types\Notebook(array('name' => trim($name), 'stack' => $stack, 'guid' => $guid));
+			$noteStore = self::$_client->getNoteStore();
+			$noteStore->updateNotebook(self::$_access_token, $nb);
+			self::_clear_error();
+			return $guid;
+		} 		
+		
+		catch(\EDAM\Error\EDAMSystemException $e) 
+		{
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(\EDAM\Error\EDAMUserException $e) {
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(\EDAM\Error\EDAMNotFoundException $e) {
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(Exception $e) {
+	    self::_exception_error($e);
+	    return false;
+    }	
+  }
 	
 	// -------------- Tags ------------------ //
 	
