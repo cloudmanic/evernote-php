@@ -119,6 +119,40 @@ class Api
 	// -------------- Notes ---------------------- //
 
 	//
+	// Get a note.
+	//
+	public static function get_note($guid, $content = true, $resources = true)
+	{
+		// Try and get the note.
+    try {
+			$noteStore = self::$_client->getNoteStore();
+			$note = $noteStore->getNote(self::$_access_token, $guid, $content, $resources, false, false);			
+			return self::_note_clean($note);
+    }
+    
+		catch(\EDAM\Error\EDAMSystemException $e) 
+		{
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(\EDAM\Error\EDAMUserException $e) {
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(\EDAM\Error\EDAMNotFoundException $e) {
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(Exception $e) {
+	    self::_exception_error($e);
+	    return false;
+    }	
+	}
+
+	//
 	// Create a new note. Returns new notes GUID
 	//
 	public static function new_note($title, $body, $notebook = null, $body_files = true)
@@ -207,6 +241,62 @@ class Api
     self::_clear_error();
     
     return $createdNote->guid;
+	}
+	
+	//
+	// Update a note's notebook. For some reason the title always has to be passed in.
+	//
+	public static function update_note_notebook($note_guid, $notebook, $title)
+	{
+    // Build Note object.
+		$note = new \EDAM\Types\Note();
+
+    // Make sure the title is not blank.
+    if(empty($title))
+    {
+	    self::$_error = 'Title can not be blank';
+	    return false;
+    }
+	
+    // Build Note object.
+		$note = new \EDAM\Types\Note();
+	
+		// Title
+		$note->title = trim($title);
+
+		// Set noteid.
+		$note->guid = $note_guid;
+
+		// Set notebook.
+		$note->notebookGuid = $notebook;
+	
+    // Update the note.
+    try {
+	    $noteStore = self::$_client->getNoteStore();
+			$noteStore->updateNote(self::$_access_token, $note);
+			return true;
+    }
+    
+		catch(\EDAM\Error\EDAMSystemException $e) 
+		{
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(\EDAM\Error\EDAMUserException $e) {
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(\EDAM\Error\EDAMNotFoundException $e) {
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(Exception $e) {
+	    self::_exception_error($e);
+	    return false;
+    }	
 	}
 	
 	// 
@@ -471,6 +561,42 @@ class Api
   }
 	
 	// ------------- Private helper function ---------------- //
+	
+	//
+	// Note Clean - We do not like the evernote library objects so we clean
+	// them up to be more like what we want.
+	//
+	private static function _note_clean($note)
+	{
+		$data = array( 'files' => array() );
+		
+		// Clean up the content.
+		if(! empty($note->content))
+		{
+			$content = explode('<en-note>', $note->content);
+		} else
+		{
+			$content[1] = '';
+		}
+		
+		// Deal with resources.
+		if(isset($note->resources) && is_array($note->resources))
+		{
+			foreach($note->resources AS $key => $row)
+			{
+				$path = '/tmp/' . $row->attributes->fileName;
+				file_put_contents($path, $row->data->body);
+				$data['files'][] = $path;
+			}
+		}
+		
+		$data['notebookGuid'] = $note->notebookGuid;
+		$data['guid'] = $note->guid;
+		$data['title'] = $note->title;
+		$data['content'] = str_ireplace('</en-note>', '', $content[1]);
+		
+		return $data;
+	}
 	
 	//
 	// Clear error.
