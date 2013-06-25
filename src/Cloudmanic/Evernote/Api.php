@@ -244,6 +244,100 @@ class Api
 	}
 	
 	//
+	// Update a note by GUID, must have full api access.
+	//
+	public static function update_note($guid, $title, $body, $notebook = null, $body_files = true)
+	{
+    // Make sure the title is not blank.
+    if(empty($title))
+    {
+	    self::$_error = 'Title can not be blank';
+	    return false;
+    }
+	
+    // Build Note object.
+		$note = new \EDAM\Types\Note();
+	
+		// Set the Guid.
+		$note->guid = $guid;
+	
+		// Title
+		$note->title = trim($title);
+		
+		// Add Atributes
+		if(! is_null(self::$_attributes))
+		{
+			$note->attributes = self::$_attributes;
+		}	
+		
+		// Notebook
+		if(! is_null($notebook))
+		{
+			$note->notebookGuid = $notebook;
+		}
+		
+		// Add file resources if we have any.
+		if(count(self::$_files) > 0)
+		{
+			$note->resources = self::$_files;
+			
+			if($body_files)
+			{
+				foreach(self::$_files AS $key => $row)
+				{
+					$body .= '<en-media type="' . $row->mime . '" hash="' . $row->attributes->hash . '"/>';
+				}
+			}
+		}
+		
+		// Add tags.
+		if(count(self::$_tags) > 0)
+		{
+			$note->tagNames = self::$_tags;
+		}
+		
+		// Content
+		$note->content =
+    '<?xml version="1.0" encoding="UTF-8"?>' .
+    '<!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">' .
+    '<en-note>' . $body . '</en-note>';
+        
+    // Create the note.
+    try {
+	    $noteStore = self::$_client->getNoteStore();
+    	$createdNote = $noteStore->updateNote(self::$_access_token, $note);
+    }
+    
+		catch(\EDAM\Error\EDAMSystemException $e) 
+		{
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(\EDAM\Error\EDAMUserException $e) {
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(\EDAM\Error\EDAMNotFoundException $e) {
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(Exception $e) {
+	    self::_exception_error($e);
+	    return false;
+    }	
+    
+    // Clear stuff.
+    self::$_files = array();
+    self::$_tags = array();
+    self::_clear_error();
+    
+    return $createdNote->guid;
+	}
+	
+	//
 	// Update a note's notebook. For some reason the title always has to be passed in.
 	//
 	public static function update_note_notebook($note_guid, $notebook, $title)
@@ -349,6 +443,52 @@ class Api
 	}
 
 	// -------------- Notebooks ------------------ //
+
+	// 
+	// Get a notebook by id.
+	//
+	public static function get_notebook($guid)
+	{
+		$data = array();
+		
+		try {
+			$noteStore = self::$_client->getNoteStore();
+			$notebook = $noteStore->getNotebook(self::$_access_token, $guid);	
+			
+			// Set data.
+			$data = array(
+			  'guid' => $notebook->guid, 
+			  'name' => $notebook->name, 
+			  'stack' => $notebook->stack, 
+			  'updateSequenceNum' => $notebook->updateSequenceNum
+			);
+
+			self::_clear_error();
+			return $data;
+		} 
+		
+		catch(\EDAM\Error\EDAMSystemException $e) 
+		{
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(\EDAM\Error\EDAMUserException $e) {
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(\EDAM\Error\EDAMNotFoundException $e) {
+	    self::_exception_error($e);
+		  return false;
+    } 
+    
+    catch(Exception $e) {
+	    self::_exception_error($e);
+	    return false;
+    }
+	}
+	
 	
 	// 
 	// Get all note books.
@@ -618,7 +758,7 @@ class Api
 	// them up to be more like what we want.
 	//
 	private static function _note_clean($note)
-	{
+	{		
 		$data = array( 'files' => array() );
 		
 		// Clean up the content.
@@ -635,12 +775,16 @@ class Api
 		{
 			foreach($note->resources AS $key => $row)
 			{
-				$path = '/tmp/' . $row->attributes->fileName;
-				file_put_contents($path, $row->data->body);
-				$data['files'][] = $path;
+				if(! empty($row->data->body))
+				{
+					$path = '/tmp/' . $row->attributes->fileName;
+					file_put_contents($path, $row->data->body);
+					$data['files'][] = $path;
+				}
 			}
 		}
 		
+		$data['active'] = $note->active;
 		$data['notebookGuid'] = $note->notebookGuid;
 		$data['guid'] = $note->guid;
 		$data['title'] = $note->title;
