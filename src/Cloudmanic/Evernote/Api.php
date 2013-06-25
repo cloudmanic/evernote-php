@@ -788,7 +788,14 @@ class Api
 		$data['notebookGuid'] = $note->notebookGuid;
 		$data['guid'] = $note->guid;
 		$data['title'] = $note->title;
-		$data['content'] = str_ireplace('</en-note>', '', $content[1]);
+		
+		if(isset($content[1]))
+		{
+			$data['content'] = str_ireplace('</en-note>', '', $content[1]);
+		} else
+		{
+			$data['content'] = '';
+		}
 		
 		return $data;
 	}
