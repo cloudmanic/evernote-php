@@ -775,7 +775,8 @@ class Api
 		{
 			foreach($note->resources AS $key => $row)
 			{
-				if(! empty($row->data->body))
+				if(isset($row->attributes->fileName) && isset($row->data->body) &&
+						(! empty($row->data->body) && (! empty($row->attributes->fileName))))
 				{
 					$path = '/tmp/' . $row->attributes->fileName;
 					file_put_contents($path, $row->data->body);
