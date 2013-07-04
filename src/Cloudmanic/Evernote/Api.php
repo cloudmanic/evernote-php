@@ -778,7 +778,13 @@ class Api
 				if(isset($row->attributes->fileName) && isset($row->data->body) &&
 						(! empty($row->data->body) && (! empty($row->attributes->fileName))))
 				{
-					$path = '/tmp/' . $row->attributes->fileName;
+					// Make sure we have an evernote dir.
+					if(! is_dir('/tmp/evernote/'))
+					{
+						mkdir('/tmp/evernote/');
+					}
+				
+					$path = '/tmp/evernote/' . $row->attributes->fileName;
 					file_put_contents($path, $row->data->body);
 					$data['files'][] = $path;
 				}
