@@ -784,7 +784,7 @@ class Api
 						mkdir('/tmp/evernote/');
 					}
 				
-					$path = '/tmp/evernote/' . $row->attributes->fileName;
+					$path = '/tmp/evernote/' . str_ireplace('/', '-', $row->attributes->fileName);
 					file_put_contents($path, $row->data->body);
 					$data['files'][] = $path;
 				}
