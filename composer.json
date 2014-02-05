@@ -19,6 +19,6 @@
     },
     
     "require": {
-      "evernote/evernote": "1.23.1.*@dev"
+      "evernote/evernote": "dev-master"
     }
 }
