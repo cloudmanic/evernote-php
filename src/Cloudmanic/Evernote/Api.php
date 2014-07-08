@@ -505,7 +505,8 @@ class Api
 			$sort = array();
 			foreach($notebooks AS $key => $row)
 			{
-				$sort[$row->name] = $row;
+				$full = (! empty($row->stack)) ? $row->stack . '/' . $row->name : $row->name;
+				$sort[$full] = $row;
 			}
 			
 			ksort($sort);
