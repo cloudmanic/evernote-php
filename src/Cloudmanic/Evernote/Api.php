@@ -515,7 +515,8 @@ class Api
 			{
 			  $data[] = array(
 			  	'guid' => $row->guid, 
-			  	'name' => $row->name, 
+			  	'name' => $row->name,
+			  	'full' =>  (! empty($row->stack)) ? $row->stack . '/' . $row->name : $row->name,
 			  	'stack' => $row->stack, 
 			  	'updateSequenceNum' => $row->updateSequenceNum
 			  );
