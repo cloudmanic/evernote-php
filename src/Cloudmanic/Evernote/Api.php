@@ -501,8 +501,17 @@ class Api
 			$noteStore = self::$_client->getNoteStore();
 			$notebooks = $noteStore->listNotebooks();	
 			
-			// Loop through the notebooks and formate the data.
+			// Sort the results.
+			$sort = array();
 			foreach($notebooks AS $key => $row)
+			{
+				$sort[$row->name] = $row;
+			}
+			
+			ksort($sort);
+			
+			// Loop through the notebooks and formate the data.
+			foreach($sort AS $key => $row)
 			{
 			  $data[] = array(
 			  	'guid' => $row->guid, 
